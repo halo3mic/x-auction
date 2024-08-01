@@ -33,7 +33,7 @@ contract TokenAuction is SuaveContract {
         BidId indexed bidId,
         address indexed bidder
     );
-    event BidCancelled(BidId indexed bidId);
+    // event BidCancelled(BidId indexed bidId);
 
     string constant PK_NAMESPACE = "auction:v0:pksecret";
     string constant BID_NAMESPACE = "auction:v0:bids";
@@ -240,9 +240,12 @@ contract TokenAuction is SuaveContract {
         return balance >= amount && lockedUntil <= auctionEndPlusClaimTime;
     }
 
-    // todo: what if multiple bidders bid the same?
+    // todo: what if multiple bidders bid the same? - store time for FIFO
     // Assumes auction status is checked on a higher lvl
-    function settleVickeryAuction(uint auctionId) internal returns (Bid memory winningBid, uint scndBestBidAmount) {
+    function settleVickeryAuction(
+        uint auctionId
+    ) internal returns (Bid memory winningBid, uint scndBestBidAmount) 
+    {
         Bid[] memory bids = fetchBids(auctionId);
         for (uint i = 0; i < bids.length; ++i) {
             Bid memory bid = bids[i];

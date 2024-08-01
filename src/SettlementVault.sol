@@ -67,7 +67,10 @@ contract Vault {
         require(success, "Transfer failed");
     }
 
-    function _verifySignature(AuctionPayout memory payout, bytes memory signature) internal view {
+    function _verifySignature(
+        AuctionPayout memory payout, 
+        bytes memory signature
+    ) internal view {
         bytes32 digest = keccak256(abi.encode(payout));
         address signer = recoverSigner(digest, signature);
         require(signer == auctionMaster, "Invalid signature");
