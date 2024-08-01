@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 import "../lib/suave-std/src/Test.sol";
 import "forge-std/console2.sol";
 
-import "../src/Auction.sol";
+import "../contracts/Auction.sol";
 
 
 contract AuctionTest is Test, SuaveEnabled {
