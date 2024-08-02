@@ -18,8 +18,7 @@ contract SettlementVault {
         uint192 balance;
     }
 
-    bytes32 public constant TAKER_ROLE = keccak256("TAKER_ROLE");
-    uint64 immutable withdrawPeriod = 1 days;
+    uint64 immutable withdrawPeriod = 1 days; // todo: set at deployment?
     mapping(address => AccountBalance) internal _balances;
     address immutable owner = msg.sender;
     address public auctionMaster;
@@ -56,7 +55,12 @@ contract SettlementVault {
         emit Withdrawn(msg.sender, amount);
     }
 
-    function takeFunds(address account, uint192 amount, address to, bytes memory payoutSignature) external {
+    function takeFunds(
+        address account, 
+        uint192 amount, 
+        address to, 
+        bytes memory payoutSignature
+    ) external {
         _verifySignature(AuctionPayout(account, amount), payoutSignature);
         require(_balances[account].balance >= amount, "Insufficient funds");
         unchecked { _balances[account].balance -= amount; }
