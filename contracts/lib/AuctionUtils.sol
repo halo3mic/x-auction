@@ -16,7 +16,7 @@ struct Auction {
     bytes32 hashedToken;
     uint64 until;
     uint64 payoutCollectionDuration;
-    address auctionMaster;
+    address auctioneer;
 }
 struct Bid {
     BidId id;

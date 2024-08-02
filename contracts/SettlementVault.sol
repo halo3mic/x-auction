@@ -6,7 +6,7 @@ import { AuctionPayout } from "./lib/AuctionUtils.sol";
 import "./lib/SigUtils.sol";
 
 
-contract Vault {
+contract SettlementVault {
 
     event Locked(address indexed account, uint192 amount, uint64 unlockTimestamp);
     event ScheduledUnlock(address indexed account, uint64 unlockTimestamp);
@@ -19,13 +19,15 @@ contract Vault {
     }
 
     bytes32 public constant TAKER_ROLE = keccak256("TAKER_ROLE");
-    uint64 immutable withdrawPeriod;
+    uint64 immutable withdrawPeriod = 1 days;
     mapping(address => AccountBalance) internal _balances;
-    address auctionMaster;
+    address immutable owner = msg.sender;
+    address public auctionMaster;
 
-    constructor(address _auctionMaster, uint64 _withdrawPeriod) {
+    function registerAuctionMaster(address _auctionMaster) external {
+        require(auctionMaster == address(0), "Auction master already set");
+        require(msg.sender == owner, "Unauthorized");
         auctionMaster = _auctionMaster;
-        withdrawPeriod = _withdrawPeriod;
     }
 
     function getBalance(address account) external view returns (uint256, uint64) {

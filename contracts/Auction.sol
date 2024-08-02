@@ -3,8 +3,7 @@ pragma solidity ^0.8.9;
 
 import { Suave } from "lib/suave-std/src/suavelib/Suave.sol"; // todo fix remapping
 import { EthJsonRPC } from "lib/suave-std/src/protocols/EthJsonRPC.sol"; // todo fix remapping
-
-import "./lib/SuaveContract.sol";
+import { SuaveContract } from "./lib/SuaveContract.sol"; // todo fix remapping
 import "./lib/AuctionUtils.sol";
 import "./lib/SigUtils.sol";
 
@@ -15,7 +14,7 @@ contract TokenAuction is SuaveContract {
 
     event AuctionCreated(
         uint256 indexed auctionId,
-        address indexed auctionMaster,
+        address indexed auctioneer,
         bytes32 indexed hashedToken,
         address payoutAddress,
         uint64 until,
@@ -40,9 +39,9 @@ contract TokenAuction is SuaveContract {
     address[] public genericPeekers = [0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829]; // todo: update after suave update (this exposes storage to everyone)
     address public immutable vault;
     Suave.DataId internal pkDataId;
-    address takerAddress;
+    address public auctionMaster;
     Auction[] public auctions;
-    bool isInitialized;
+    bool public isInitialized;
     EthJsonRPC settlementRpc;
 
     constructor(address _vault, string memory _settlementChainRpc) {
@@ -53,14 +52,14 @@ contract TokenAuction is SuaveContract {
     function confidentialConstructorCallback(Suave.DataId _pkDataId, address pkAddress) public {
         crequire(!isInitialized, "Already initialized");
         pkDataId = _pkDataId;
-        takerAddress = pkAddress;
+        auctionMaster = pkAddress;
         isInitialized = true;
     }
 
     function createAuctionCallback(
         NewAuctionArgs memory auctionArgs, 
         bytes32 tokenHash,
-        address auctionMaster
+        address auctioneer
     ) external {
         uint64 until = uint64(block.timestamp) + auctionArgs.auctionDuration;
         Auction storage newAuction = auctions.push();
@@ -69,11 +68,10 @@ contract TokenAuction is SuaveContract {
         newAuction.hashedToken = tokenHash;
         newAuction.until = until;
         newAuction.payoutCollectionDuration = auctionArgs.payoutCollectionDuration;
-        newAuction.auctionMaster = auctionMaster;
 
         emit AuctionCreated(
             auctions.length-1,
-            auctionMaster,
+            auctioneer,
             tokenHash,
             auctionArgs.payoutAddress,
             until,
@@ -120,19 +118,19 @@ contract TokenAuction is SuaveContract {
     function createAuction(NewAuctionArgs memory auctionArgs) external onlyConfidential returns (bytes memory) {
         string memory token = string(Suave.confidentialInputs());
         bytes32 tokenHash = keccak256(abi.encode(token));
-        address auctionMaster = msg.sender;
+        address auctioneer = msg.sender;
 
         return abi.encodeWithSelector(
             this.createAuctionCallback.selector, 
             auctionArgs,
             tokenHash,
-            auctionMaster
+            auctioneer
         );
     }
 
     function cancelAuction(uint256 auctionId) external onlyConfidential returns (bytes memory) {
         Auction storage auction = auctions[auctionId];
-        require(auction.auctionMaster == msg.sender, "Only auction master can cancel");
+        require(auction.auctioneer == msg.sender, "Only auction master can cancel");
         require(auction.status == AuctionStatus.LIVE, "Auction is not live");
         return abi.encodeWithSelector(this.cancelAuctionCallback.selector, auctionId);
     }
