@@ -17,6 +17,14 @@ export default function Home() {
 							Bid Page
 						</Button>
 					</Link>
+					<Link href="/sell" className="block">
+						<Button
+							variant="default"
+							className="w-full py-6 text-lg font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
+						>
+							Sell Page
+						</Button>
+					</Link>
 				</nav>
 			</div>
 		</div>
