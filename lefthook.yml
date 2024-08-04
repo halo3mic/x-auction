@@ -7,5 +7,5 @@ pre-commit:
       stage_fixed: true
     lint: # Lint before committing using eslint
       glob: "frontend/**/*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
-      run: dw frontend && next lint
+      run: cd frontend && bun lint
       stage_fixed: true
