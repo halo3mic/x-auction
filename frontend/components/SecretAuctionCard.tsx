@@ -1,6 +1,5 @@
-import { ArrowRight, BookLock, Clock, User } from "lucide-react";
+import { ArrowRight, BookLock, User } from "lucide-react";
 import Link from "next/link";
-import Countdown from "react-countdown";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import { ClientCountdown } from "./ClientCountdown";
 
 interface SecretAuctionCardProps {
   id: number;
@@ -56,17 +57,7 @@ export function SecretAuctionCard({
             <p className="text-xs font-medium text-muted-foreground mb-1">
               Ends in
             </p>
-            <p className="text-sm font-semibold flex items-center justify-end bg-primary/10 rounded-full px-3 py-1">
-              <Clock className="mr-1 text-primary" size={14} />
-              <Countdown
-                date={endTime}
-                renderer={({ days, hours, minutes }) => (
-                  <span className="text-primary font-bold">
-                    {days}d {hours}h {minutes}m
-                  </span>
-                )}
-              />
-            </p>
+            <ClientCountdown endTime={endTime} />
           </div>
         </div>
       </CardContent>
