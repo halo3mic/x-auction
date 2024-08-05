@@ -26,6 +26,14 @@ export default function Home() {
               Sell Page
             </Button>
           </Link>
+          <Link href="/explore" className="block">
+            <Button
+              variant="default"
+              className="w-full py-6 text-lg font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              Explore Secrets
+            </Button>
+          </Link>
         </nav>
       </div>
     </div>
