@@ -62,11 +62,11 @@ export default function ExplorePage() {
                 Secret #{secret.id}
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow pt-4">
-              <p className="text-muted-foreground mb-6 line-clamp-2 text-sm">
+            <CardContent className="flex-grow pt-4 flex flex-col">
+              <p className="text-muted-foreground mb-6 line-clamp-2 text-sm flex-grow">
                 {secret.description}
               </p>
-              <div className="flex justify-between items-end">
+              <div className="flex justify-between items-end mt-auto">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">
                     Your Bid
