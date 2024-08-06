@@ -26,7 +26,7 @@ export function SecretAuctionCard({
   endTime,
 }: SecretAuctionCardProps) {
   return (
-    <Card className="flex flex-col hover:shadow-lg transition-all duration-300 bg-secondary/30">
+    <Card className="flex flex-col hover:shadow-lg transition-all bg-primary-foreground duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-2xl font-bold">
           <BookLock className="text-primary mr-3" size={28} />

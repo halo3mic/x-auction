@@ -18,6 +18,23 @@ export default function Page() {
   const [secret, setSecret] = useState("");
   const [description, setDescription] = useState("");
 
+  const inputFields = [
+    {
+      label: "Secret Description",
+      icon: BookLock,
+      placeholder:
+        "Provide a brief description of your secret to attract potential bidders.",
+      value: description,
+      setValue: setDescription,
+    },
+    {
+      label: "Your Secret",
+      icon: Lock,
+      placeholder: "Paste your secret here",
+      value: secret,
+      setValue: setSecret,
+    },
+  ];
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Implement transaction signing and auction offering logic
@@ -28,51 +45,42 @@ export default function Page() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-[420px] shadow-lg relative">
-        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 border border-border bg-background rounded-full p-3 shadow-sm">
+        <div className="absolute -top-6 p-3 left-1/2 -translate-x-1/2 border bg-background rounded-full shadow-sm">
           <Lock className="text-primary" size={24} />
         </div>
 
-        <CardHeader className="pt-10 pb-6">
-          <CardTitle className="text-2xl font-bold text-center">
+        <CardHeader className="pt-10 text-center">
+          <CardTitle className="text-2xl font-bold">
             Offer Secret for Auction
           </CardTitle>
-          <CardDescription className="text-center text-muted-foreground mt-1.5">
+          <CardDescription>
             Sign and offer your secret for auction
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <label className="flex items-center text-sm font-medium text-foreground">
-              <BookLock className="text-primary mr-2" size={18} />
-              Secret Description
-            </label>
-            <Textarea
-              placeholder="Provide a brief description of your secret to attract potential bidders."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[80px] bg-muted border border-input focus:border-ring focus:ring-1 focus:ring-ring"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="flex items-center text-sm font-medium text-foreground">
-              <Lock className="text-primary mr-2" size={18} />
-              Your Secret
-            </label>
-            <Textarea
-              placeholder="Paste your secret here"
-              value={secret}
-              onChange={(e) => setSecret(e.target.value)}
-              className="min-h-[80px] bg-muted border border-input focus:border-ring focus:ring-1 focus:ring-ring"
-            />
-          </div>
+          {inputFields.map(
+            ({ label, icon: Icon, placeholder, value, setValue }) => (
+              <div key={label} className="space-y-2">
+                <label className="flex items-center text-sm font-medium">
+                  <Icon className="text-primary mr-2" size={18} />
+                  {label}
+                </label>
+                <Textarea
+                  placeholder={placeholder}
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="min-h-[80px] bg-muted"
+                />
+              </div>
+            ),
+          )}
         </CardContent>
 
         <CardFooter className="pt-2">
           <Button
             type="submit"
-            className="w-full font-semibold transition-colors"
+            className="w-full font-semibold"
             size="lg"
             onClick={handleSubmit}
           >
