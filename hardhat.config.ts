@@ -3,9 +3,7 @@ import "@nomicfoundation/hardhat-foundry";
 import "hardhat-deploy";
 import {config as dconfig} from "dotenv";
 
-import './tasks/create-auction'
-import './tasks/settle-auction'
-import './tasks/submit-bid'
+import './tasks/auction-tasks'
 import './tasks/lock-funds'
 
 dconfig();

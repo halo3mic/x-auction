@@ -6,7 +6,7 @@ import { Interface } from 'ethers'
 export async function getContract(hre: HRE, contractName: string, contractAddress?: string | undefined) {
     if (!contractAddress) {
         contractAddress = await hre.deployments.get(contractName).then(c => c.address)
-    }
+	}
     return hre.ethers.getContractAt(contractName, contractAddress)
 }
 
