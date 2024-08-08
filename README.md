@@ -40,12 +40,12 @@ $ npx hardhat settle-auction <auction id> --network toliman
 $ npx hardhat claim-token <auction id> --network toliman
 ```
 
-## Testing 
+### Testing 
 ```
 yarn test
 ```
 
-## Deployment
+### Deployment
 
 First deploy the settlement vault to Holesky
 ```
