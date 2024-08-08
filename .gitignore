@@ -14,5 +14,8 @@ docs/
 .env
 
 .vscode
-
-node_modules/
+.env
+node_modules
+artifacts
+typechain-types
+cache_forge
