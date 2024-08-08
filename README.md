@@ -13,8 +13,7 @@ Setup `.env` file according to `.env.sample`.
 Make sure that you have sufficient native funds on Holesky and Toliman.
 
 ## Usage 
-
-## HH Tasks
+### HH Tasks
 
 #### Deposit funds into vault
 ```
