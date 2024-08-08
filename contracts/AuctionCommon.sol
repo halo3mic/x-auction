@@ -4,7 +4,7 @@ import "contracts/utils/AuctionUtils.sol";
 
 
 abstract contract AuctionCommon {
-    address public immutable vault;
+    address public vault;
     address public auctionMaster;
     Auction[] public auctions;
 

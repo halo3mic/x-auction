@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {AuctionPayout} from "./utils/AuctionUtils.sol";
 import "./utils/SigUtils.sol";
 
-contract Vault {
+contract SettlementVault {
     event Locked(
         address indexed account,
         uint192 amount,
@@ -30,7 +30,7 @@ contract Vault {
     mapping(address => uint16) public accountToPaymentNonce;
 
     function registerAuctionMaster(address _auctionMaster) external {
-        // todo: require(auctionMaster == address(0), "Auction master already set");
+        // require(auctionMaster == address(0), "Auction master already set");
         require(msg.sender == owner, "Unauthorized");
         auctionMaster = _auctionMaster;
     }
