@@ -169,7 +169,6 @@ contract AuctionTest is Test, SuaveEnabled {
         uint64 auctionDuration = 3600;
 
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
-        Suave.DataId dataId = auction.bidCountDataId();
 
         // Bid 1
         uint256 bidAmount = 100;
@@ -272,7 +271,7 @@ contract AuctionTest is Test, SuaveEnabled {
         auction.checkBidValidity(0, ballerAddress, bidAmount);
     }
 
-    function test_settleVickeryAuction_singleBid() public {
+    function test_settleVickeryAuction_singleBid() public view {
         Bid[] memory bids = new Bid[](1);
         bids[0] = Bid({
             id: 11,
@@ -285,7 +284,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(scndBestBidAmount, bids[0].amount);
     }
 
-    function test_settleVickeryAuction_twoEqualBidsFIFO() public {
+    function test_settleVickeryAuction_twoEqualBidsFIFO() public view {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({
             id: 11,
@@ -304,7 +303,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
 
-    function test_settleVickeryAuction_twoEqualOneUniqueBid() public {
+    function test_settleVickeryAuction_twoEqualOneUniqueBid() public view {
         Bid[] memory bids = new Bid[](3);
         bids[0] = Bid({
             id: 0,
@@ -327,7 +326,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(scndBestBidAmount, bids[0].amount);
     }
 
-    function test_settleVickeryAuction_twoUniqueBids() public {
+    function test_settleVickeryAuction_twoUniqueBids() public view {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({
             id: 0,
@@ -345,7 +344,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(scndBestBidAmount, bids[0].amount);
     }
 
-    function test_settleVickeryAuction_threeUniqueBids() public {
+    function test_settleVickeryAuction_threeUniqueBids() public view {
         Bid[] memory bids = new Bid[](3);
         bids[0] = Bid({
             id: 0,
