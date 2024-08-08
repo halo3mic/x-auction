@@ -27,9 +27,10 @@ contract Vault {
     mapping(address => AccountBalance) internal _balances;
     address immutable owner = msg.sender;
     address public auctionMaster;
+    mapping(address => uint16) public accountToPaymentNonce;
 
     function registerAuctionMaster(address _auctionMaster) external {
-        require(auctionMaster == address(0), "Auction master already set");
+        // todo: require(auctionMaster == address(0), "Auction master already set");
         require(msg.sender == owner, "Unauthorized");
         auctionMaster = _auctionMaster;
     }
@@ -71,16 +72,24 @@ contract Vault {
     function takeFunds(
         address account,
         uint192 amount,
-        address to,
         bytes memory payoutSignature
     ) external {
-        _verifySignature(AuctionPayout(account, amount), payoutSignature);
+        address taker = msg.sender;
+        AuctionPayout memory payout = AuctionPayout(
+            address(this),
+            taker,
+            accountToPaymentNonce[taker],
+            account,
+            amount
+        );
+        _verifySignature(payout, payoutSignature);
         require(_balances[account].balance >= amount, "Insufficient funds");
         unchecked {
             _balances[account].balance -= amount;
         }
+        accountToPaymentNonce[taker]++;
         _nativeTransfer(msg.sender, amount);
-        emit FundsTaken(account, amount, to);
+        emit FundsTaken(account, amount, account);
     }
 
     function _nativeTransfer(address to, uint192 amount) internal {

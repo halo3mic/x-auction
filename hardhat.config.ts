@@ -3,6 +3,10 @@ import "@nomicfoundation/hardhat-foundry";
 import "hardhat-deploy";
 import {config as dconfig} from "dotenv";
 
+import './tasks/create-auction'
+import './tasks/settle-auction'
+import './tasks/submit-bid'
+import './tasks/lock-funds'
 
 dconfig();
 const HOLESKY_RPC = getEnvValSafe('HOLESKY_RPC')

@@ -2,7 +2,9 @@ import * as hh from 'hardhat'
 import { SuaveJsonRpcProvider, SuaveWallet, SuaveContract } from 'ethers-suave'
 import { makeDeployCallback, DeployOptions } from './deploy-utils'
 
-const settlementRpcEndpoint = 'holesky'
+// todo: choose between networks
+// const settlementRpcEndpoint = 'holesky'
+const settlementRpcEndpoint = 'https://ethereum-holesky-rpc.publicnode.com'
 const deployOptions: DeployOptions = {
 	name: 'TokenAuction', 
 	contractName: 'TokenAuction', 
@@ -11,7 +13,8 @@ const deployOptions: DeployOptions = {
 }
 
 const beforeCallback = async () => {
-	const SettlementVault = await ((hh as any)?.companionNetworks['holesky']).deployments.getOrNull('SettlementVault')
+	const SettlementVault = await hh.companionNetworks['holesky'].deployments
+		.getOrNull('SettlementVault')
 	if (!SettlementVault) {
 		throw new Error('SettlementVault must be deployed first')
 	}
@@ -33,11 +36,11 @@ const afterCallback = async (deployments: any, deployResult: any) => {
 			throw new Error('ConfidentialInit callback failed')
 	}
 	
-	deployments.log('\t3.) Registering auction-master for SettlementVault')
+	deployments.log('\t2.) Registering auction-master for SettlementVault')
 	const auctionMaster = await AuctionContract.auctionMaster()
 	const settlementVaultDeployment = await hh.companionNetworks['holesky'].deployments.get('SettlementVault')
 	const holeskyNetworkConfig = hh.config.networks['holesky'] as any
-	const holeskyProvider = new hh.ethers.providers.JsonRpcProvider(holeskyNetworkConfig.url)
+	const holeskyProvider = new hh.ethers.JsonRpcProvider(holeskyNetworkConfig.url)
 	const holeskyWallet = new hh.ethers.Wallet(holeskyNetworkConfig.accounts[0], holeskyProvider)
 	const SettlementVault = new hh.ethers.Contract(settlementVaultDeployment.address, settlementVaultDeployment.abi, holeskyWallet)
 
@@ -45,7 +48,7 @@ const afterCallback = async (deployments: any, deployResult: any) => {
 	if (registerReceipt.status == 0)
 		throw new Error('Auction master registration failed')
 
-	console.log(`AuctionContract: ${deployResult.address} | SettlementVaultContract: ${SettlementVault.address}`)
+	console.log(`AuctionContract: ${deployResult.address} | SettlementVaultContract: ${settlementVaultDeployment.address}`)
 	console.log('Complete 🎉')
 }
 

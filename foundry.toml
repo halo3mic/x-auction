@@ -5,7 +5,7 @@ libs = ['node_modules', 'lib']
 test = 'test'
 cache_path  = 'cache_forge'
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 [profile.suave]
 whitelist=['*']
-eth_backend = "http://localhost:8555"
+service_alias = { holesky = "https://ethereum-holesky-rpc.publicnode.com" }
+eth_backend = "execution"
