@@ -32,5 +32,8 @@
     "hardhat-gas-reporter": "^2.2.0",
     "solidity-coverage": "^0.8.12",
     "typechain": "^8.3.2"
+  }, 
+  "scripts": {
+    "test": "./test/run-all-tests.sh"
   }
 }

@@ -62,16 +62,26 @@ interface ICheats {
     function expectRevert(bytes calldata) external;
     function recordLogs() external;
     function getRecordedLogs() external returns (VmOrg.Log[] memory);
+    function envAddress(string calldata) external returns (address);
+    function envString(string calldata) external returns (string memory);
 }
 
 contract AuctionTest is Test, SuaveEnabled {
     using ConfRequest for address;
 
-    address vault = 0xcbD195DBae10AbE7Dec2dd5e7723677Cfc3DC7cE;
-    address ballerAddress = 0x19E7E376E7C213B7E7e7e46cc70A5dD086DAff2A;
-    address baller2Address = 0xc06d73162E9BffbCfBF1DA59C511002A8F9155E5;
-    string settlementChainRpc = "http://localhost:8555";
+    address vault;
+    address bidderA;
+    address bidderB;
+    string settlementChainRpc;
+
     ICheats cheats = ICheats(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
+    function _setup() public {
+        vault = cheats.envAddress("FORGE_AUCTION_VAULT");
+        bidderA = cheats.envAddress("FORGE_AUCTION_BIDDER_A");
+        bidderB = cheats.envAddress("FORGE_AUCTION_BIDDER_B");
+        settlementChainRpc = cheats.envString("FORGE_AUCTION_SETTLEMENT_CHAIN_RPC");
+    }
 
     function newAuction(
         string memory secret,
@@ -106,6 +116,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
     function test_createAuction() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
@@ -130,6 +141,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
     function test_cancelAuction() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
@@ -142,6 +154,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
     function test_submitBid() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint256 bidAmount = 100;
@@ -149,7 +162,7 @@ contract AuctionTest is Test, SuaveEnabled {
 
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
-        cheats.startPrank(ballerAddress);
+        cheats.startPrank(bidderA);
         (ConfRequest.Status status, bytes memory resData) = 
             ConfRequest.sendConfRequest(
                 ctx,
@@ -164,6 +177,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
     function test_settleAuction() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
@@ -172,7 +186,7 @@ contract AuctionTest is Test, SuaveEnabled {
 
         // Bid 1
         uint256 bidAmount = 100;
-        cheats.startPrank(ballerAddress);
+        cheats.startPrank(bidderA);
         (ConfRequest.Status status1, bytes memory resData1) = 
             ConfRequest.sendConfRequest(
                 ctx,
@@ -184,7 +198,7 @@ contract AuctionTest is Test, SuaveEnabled {
 
         // Bid 2
         bidAmount = 120;
-        cheats.startPrank(baller2Address);
+        cheats.startPrank(bidderB);
         (ConfRequest.Status status2, bytes memory resData2) = 
             ConfRequest.sendConfRequest(
                 ctx,
@@ -208,10 +222,10 @@ contract AuctionTest is Test, SuaveEnabled {
 
         // Check we got correct winner
         (,,,,,,,,address winner) = auction.auctions(0);
-        assertEq(winner, baller2Address);
+        assertEq(winner, bidderB);
 
         // Check the winner can claim the secret
-        cheats.startPrank(baller2Address);
+        cheats.startPrank(bidderB);
         (ConfRequest.Status status4, bytes memory resData4) = 
             ConfRequest.sendConfRequest(
                 ctx,
@@ -225,6 +239,7 @@ contract AuctionTest is Test, SuaveEnabled {
     }
 
     function test_checkBidValidity_auctionDeadline() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint256 bidAmount = 100;
@@ -234,10 +249,11 @@ contract AuctionTest is Test, SuaveEnabled {
 
         cheats.expectRevert(bytes("Auction has ended"));
         cheats.warp(block.timestamp + auctionDuration + 1);
-        auction.checkBidValidity(0, ballerAddress, bidAmount);
+        auction.checkBidValidity(0, bidderA, bidAmount);
     }
 
     function test_checkBidValidity_nonSufficientFunds() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint256 bidAmount = 100_000 ether;
@@ -246,20 +262,22 @@ contract AuctionTest is Test, SuaveEnabled {
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         cheats.expectRevert(bytes("Insufficient funds"));
-        auction.checkBidValidity(0, ballerAddress, bidAmount);
+        auction.checkBidValidity(0, bidderA, bidAmount);
     }
 
     function test_checkBidValidity_sufficientFunds() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "xx";
         uint256 bidAmount = 100;
         uint64 auctionDuration = 3600;
 
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
-        auction.checkBidValidity(0, ballerAddress, bidAmount);
+        auction.checkBidValidity(0, bidderA, bidAmount);
     }
 
     function test_checkBidValidity_zeroBid() public {
+        _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
         uint256 bidAmount = 0;
@@ -268,14 +286,14 @@ contract AuctionTest is Test, SuaveEnabled {
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         cheats.expectRevert(bytes("Bid amount should be greater than zero"));
-        auction.checkBidValidity(0, ballerAddress, bidAmount);
+        auction.checkBidValidity(0, bidderA, bidAmount);
     }
 
     function test_settleVickeryAuction_singleBid() public view {
         Bid[] memory bids = new Bid[](1);
         bids[0] = Bid({
             id: 11,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 100
         });
 
@@ -288,12 +306,12 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({
             id: 11,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 100
         });
         bids[1] = Bid({
             id: 12,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 100
         });
         (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
@@ -307,7 +325,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](3);
         bids[0] = Bid({
             id: 0,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 100
         });
         bids[1] = Bid({
@@ -330,7 +348,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({
             id: 0,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 90
         });
         bids[1] = Bid({
@@ -348,7 +366,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](3);
         bids[0] = Bid({
             id: 0,
-            bidder: ballerAddress,
+            bidder: bidderA,
             amount: 90
         });
         bids[1] = Bid({

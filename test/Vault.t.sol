@@ -23,7 +23,7 @@ contract VaultTest is Test {
     ICheats cheats = ICheats(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function test_takeFunds() public {
-        Vault _vaultTemp = new Vault();
+        SettlementVault _vaultTemp = new SettlementVault();
         IVault vault = IVault(0xcbD195DBae10AbE7Dec2dd5e7723677Cfc3DC7cE);
         cheats.etch(address(vault), address(_vaultTemp).code);
         vault.registerAuctionMaster(0x5f152Cbf639a28a9Bb4D365349a8561d806f000f);
