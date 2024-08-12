@@ -70,7 +70,8 @@ async function settleAuction(c: IConfig<ITaskArgsSimple>) {
 }
 
 async function claimToken(c: IConfig<ITaskArgsSimple>) {
-    const response = c.AuctionContract.claimToken.sendCCR(c.taskArgs.auctionId)
+    const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(['string'], ['pshhh'])
+    const response = c.AuctionContract.claimToken.sendCCR(c.taskArgs.auctionId, { confidentialInputs })
     await utils.prettyPromise(response, c.AuctionContract.interface, 'ClaimToken')
         .then(utils.handleResult)
 }

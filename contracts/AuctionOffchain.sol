@@ -100,12 +100,15 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
             );
     }
 
-    function claimToken(uint16 auctionId) external onlyConfidential onlyInitialized {
+    function claimToken(
+        uint16 auctionId
+    ) external onlyConfidential onlyInitialized returns (bytes memory) {
         Auction storage auction = auctions[auctionId];
         require(auction.status == AuctionStatus.SETTLED, "Auction is not settled");
         require(auction.winner == msg.sender, "Only winner can claim token");
-        // todo: instead of revert let the user pass encryption key
-        revert(abi.decode(cstore.retrieveToken(auction.tokenDataId), (string)));
+        bytes memory tokenBytes = cstore.retrieveToken(auction.tokenDataId);
+        bytes memory key = Suave.confidentialInputs();
+        return Suave.aesEncrypt(key, tokenBytes);
     }
 
     function checkBidValidity(uint16 auctionId, address bidder, uint bidAmount) public {

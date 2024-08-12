@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "lib/suave-std/src/Test.sol";
+import "lib/suave-std/src/suavelib/Suave.sol";
 import "lib/suave-std/src/forge/ContextConnector.sol";
 import "lib/forge-std/src/console2.sol";
 import { VmSafe as VmOrg } from "lib/forge-std/src/Vm.sol";
@@ -225,17 +226,21 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(winner, bidderB);
 
         // Check the winner can claim the secret
+        bytes memory claimSecretKey = Suave.randomBytes(32);
         cheats.startPrank(bidderB);
         (ConfRequest.Status status4, bytes memory resData4) = 
             ConfRequest.sendConfRequest(
                 ctx,
                 address(auction),
-                abi.encodeWithSelector(auction.claimToken.selector, 0)
+                abi.encodeWithSelector(auction.claimToken.selector, 0), 
+                claimSecretKey
             );
-        require(status4 == ConfRequest.Status.FAILURE_OFFCHAIN, "claim should fail offchain");
-        string memory claimedToken = LibString.slice(string(resData4), 4);
-        
-        assertEq(keccak256(abi.encode(secret)), keccak256(bytes(claimedToken)));
+        require(status4 == ConfRequest.Status.SUCCESS, "claim the secret failed");
+        bytes memory claimedTokenDecoded = Suave.aesDecrypt(claimSecretKey, resData4);
+
+        console2.log(string(claimedTokenDecoded));
+
+        assertEq(keccak256(abi.encode(secret)), keccak256(claimedSecretDecoded));
     }
 
     function test_checkBidValidity_auctionDeadline() public {
