@@ -31,7 +31,7 @@
     "ethers": "6",
     "hardhat-gas-reporter": "^2.2.0",
     "solidity-coverage": "^0.8.12",
-    "typechain": "^8.3.2"
+    "typechain": "^8.3.2",
     "@types/bun": "latest",
     "husky": "^9.1.4"
   }, 
