@@ -23,12 +23,14 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         Suave.DataId _pkDataId = cstore.storePK(bytes(pk));
         Suave.DataId _bidCountDataId = cstore.storeBidCount(0);
 
+        bytes memory ccontrolInitCallback = ConfidentialControl.ccontrolInit();
         return
             abi.encodeWithSelector(
                 AuctionOnchain.confidentialConstructorCallback.selector,
                 _pkDataId,
                 _bidCountDataId,
-                pkAddress
+                pkAddress,
+                ccontrolInitCallback
             );
     }
 
@@ -44,7 +46,8 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
                 auctionArgs,
                 tokenHash,
                 msg.sender,
-                tokenDataId
+                tokenDataId,
+                getUnlockPair()
             );
     }
 
@@ -67,7 +70,8 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
                 AuctionOnchain.submitBidCallback.selector,
                 auctionId,
                 bidId,
-                bidder
+                bidder,
+                getUnlockPair()
             );
     }
 
@@ -96,7 +100,8 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
                 winningBid.id,
                 winningBid.bidder,
                 payout,
-                payoutSig
+                payoutSig,
+                getUnlockPair()
             );
     }
 
