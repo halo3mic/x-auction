@@ -111,7 +111,7 @@ contract AuctionTest is Test, SuaveEnabled {
                     auction.createAuction.selector,
                     auctionArgs
                 ),
-                abi.encode(secret)
+                abi.encodePacked(secret)
             );
         require(sCreate == ConfRequest.Status.SUCCESS, string(resCreate));
 
@@ -144,7 +144,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(uint(status), uint(AuctionStatus.LIVE));
         assertEq(payoutAddress, payoutAddressOrg);
         assertEq(auctioneer, address(this));
-        assertEq(hashedToken, keccak256(abi.encode(secret)));
+        assertEq(hashedToken, keccak256(abi.encodePacked(secret)));
     }
 
     function test_cancelAuction() public {
@@ -246,27 +246,22 @@ contract AuctionTest is Test, SuaveEnabled {
         // Check the winner can claim the secret
         bytes memory claimSecretKey = Suave.randomBytes(32);
         cheats.startPrank(bidderB);
-        (ConfRequest.Status status4, bytes memory resData4) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.claimToken.selector, 0),
-                claimSecretKey
-            );
-        require(
-            status4 == ConfRequest.Status.SUCCESS,
-            "claim the secret failed"
-        );
-        console2.log("resData4:");
-        console2.logBytes(resData4);
-        bytes memory claimedTokenDecoded = Suave.aesDecrypt(
+        ctx.setConfidentialInputs(claimSecretKey);
+        bytes memory resData4 = auction.claimToken(0);
+
+        bytes memory claimedTokenDecrypted = Suave.aesDecrypt(
             claimSecretKey,
             resData4
         );
+        string memory decodedSecret = abi.decode(
+            claimedTokenDecrypted,
+            (string)
+        );
 
-        console2.log(string(claimedTokenDecoded));
-
-        assertEq(keccak256(abi.encode(secret)), keccak256(claimedTokenDecoded));
+        assertEq(
+            keccak256(abi.encodePacked(secret)),
+            keccak256(bytes(decodedSecret))
+        );
     }
 
     function test_checkBidValidity_auctionDeadline() public {
