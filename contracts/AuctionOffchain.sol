@@ -112,7 +112,7 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         );
         require(auction.winner == msg.sender, "Only winner can claim token");
         bytes memory tokenBytes = cstore.retrieveToken(auction.tokenDataId);
-        bytes memory key = Suave.confidentialInputs();
+        bytes memory key = Context.confidentialInputs();
         require(key.length > 0, "confidentialInputs is empty");
         require(key.length == 32, "Invalid key length, must be 32 bytes");
         bytes memory ciphertext = Suave.aesEncrypt(key, abi.encode(tokenBytes));
