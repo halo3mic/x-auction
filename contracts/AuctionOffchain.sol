@@ -96,12 +96,6 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
             );
     }
 
-    function onClaimToken(
-        bytes memory ciphertext
-    ) public returns (bytes memory) {
-        return ciphertext;
-    }
-
     function claimToken(
         uint16 auctionId
     ) external onlyConfidential onlyInitialized returns (bytes memory) {
@@ -115,8 +109,7 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         bytes memory key = Context.confidentialInputs();
         require(key.length > 0, "confidentialInputs is empty");
         require(key.length == 32, "Invalid key length, must be 32 bytes");
-        bytes memory ciphertext = Suave.aesEncrypt(key, abi.encode(tokenBytes));
-        return abi.encodeWithSelector(this.onClaimToken.selector, ciphertext);
+        return Suave.aesEncrypt(key, abi.encode(tokenBytes));
     }
 
     function checkBidValidity(
