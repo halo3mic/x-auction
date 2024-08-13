@@ -258,10 +258,7 @@ contract AuctionTest is Test, SuaveEnabled {
             (string)
         );
 
-        assertEq(
-            keccak256(abi.encodePacked(secret)),
-            keccak256(bytes(decodedSecret))
-        );
+        assertEq(keccak256(bytes(secret)), keccak256(bytes(decodedSecret)));
     }
 
     function test_checkBidValidity_auctionDeadline() public {
