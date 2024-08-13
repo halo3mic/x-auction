@@ -45,7 +45,7 @@ FORGE_AUCTION_VAULT=$deployed_address \
     FORGE_AUCTION_BIDDER_A=$spender1_address \
     FORGE_AUCTION_BIDDER_B=$spender2_address \
     FORGE_AUCTION_SETTLEMENT_CHAIN_RPC=http://localhost:$port \
-    forge test --match-contract AuctionTest --ffi -vv
+    forge test --match-contract AuctionTest --ffi -vvv
 
 kill $pid
 rm log.temp
