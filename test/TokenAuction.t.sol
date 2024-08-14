@@ -153,7 +153,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(uint(status), uint(AuctionStatus.CANCELLED));
     }
 
-    function test_submitBid() public {
+    function test_submitBids() public {
         _setup();
         address payoutAddressOrg = address(1);
         string memory secret = "my secret";
@@ -162,6 +162,7 @@ contract AuctionTest is Test, SuaveEnabled {
 
         TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
+        // First bid
         cheats.startPrank(bidderA);
         (ConfRequest.Status status, bytes memory resData) = 
             ConfRequest.sendConfRequest(
@@ -171,9 +172,31 @@ contract AuctionTest is Test, SuaveEnabled {
                 abi.encode(bidAmount)
             );
         require(status == ConfRequest.Status.SUCCESS, string(resData));
-
         (,,,,uint128 bids,,,,) = auction.auctions(0);
         assertEq(bids, 1);
+
+        // Reinit confidential control 
+        cheats.stopPrank();
+        (ConfRequest.Status status2, bytes memory resData2) = 
+            ConfRequest.sendConfRequest(
+                ctx,
+                address(auction),
+                abi.encodeWithSelector(auction.ccontrolInit.selector)
+            );
+        require(status2 == ConfRequest.Status.SUCCESS, string(resData2));
+
+        // Second bid
+        cheats.startPrank(bidderB);
+        (ConfRequest.Status status3, bytes memory resData3) = 
+            ConfRequest.sendConfRequest(
+                ctx,
+                address(auction),
+                abi.encodeWithSelector(auction.submitBid.selector, 0),
+                abi.encode(bidAmount)
+            );
+        require(status == ConfRequest.Status.SUCCESS, string(resData));
+        (,,,,uint128 bids2,,,,) = auction.auctions(0);
+        assertEq(bids2, 2);
     }
 
     function test_settleAuction() public {

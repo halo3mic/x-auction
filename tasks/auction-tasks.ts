@@ -42,6 +42,13 @@ task('claim-token', 'Claim token from auction')
         await claimToken(config)
     })
 
+task('init-ccontrol', '(Re)initialize the confidential control contract')
+    .addOptionalParam('auctionContract', 'Address of the auction contract')
+    .setAction(async function (taskArgs: any, hre: HRE) {
+        const config = await getConfig<ITaskArgsSimple>(hre, taskArgs)
+        await initCControl(config)
+    })
+
 async function createAuction(c: IConfig<ITaskArgsCreate>) {
     const { token, duration, payoutCollectionDuration, payoutAddress } = c.taskArgs
     const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(['string'], [token])
@@ -72,6 +79,12 @@ async function settleAuction(c: IConfig<ITaskArgsSimple>) {
 async function claimToken(c: IConfig<ITaskArgsSimple>) {
     const response = c.AuctionContract.claimToken.sendCCR(c.taskArgs.auctionId)
     await utils.prettyPromise(response, c.AuctionContract.interface, 'ClaimToken')
+        .then(utils.handleResult)
+}
+
+async function initCControl(c: IConfig<ITaskArgsSimple>) {
+    const response = c.AuctionContract.ccontrolInit.sendCCR()
+    await utils.prettyPromise(response, c.AuctionContract.interface, 'InitCControl')
         .then(utils.handleResult)
 }
 

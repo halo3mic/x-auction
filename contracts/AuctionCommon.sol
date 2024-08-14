@@ -1,9 +1,9 @@
 import "lib/suave-std/src/protocols/EthJsonRPC.sol";
 import "contracts/interface/ISettlementVault.sol";
 import "contracts/utils/AuctionUtils.sol";
+import "contracts/utils/ConfidentialControl.sol";
 
-
-abstract contract AuctionCommon {
+abstract contract AuctionCommon is ConfidentialControl {
     address public vault;
     address public auctionMaster;
     Auction[] public auctions;

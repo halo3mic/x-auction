@@ -35,21 +35,26 @@ contract AuctionOnchain is AuctionCommon {
     function confidentialConstructorCallback(
         Suave.DataId _pkDataId,
         Suave.DataId _bidCountDataId,
-        address pkAddress
-    ) public {
+        address pkAddress, 
+        bytes memory ccontrolInitCallback
+    ) public onlyOwner {
         require(!isInitialized, "Already initialized");
         bidCountDataId = _bidCountDataId;
         pkDataId = _pkDataId;
         auctionMaster = pkAddress;
         isInitialized = true;
+        
+        (bool s,) = address(this).delegatecall(ccontrolInitCallback);
+        require(s, "Initialization of ConfidentialControl failed");
     }
 
     function createAuctionCallback(
         NewAuctionArgs memory auctionArgs,
         bytes32 tokenHash,
         address auctioneer, 
-        Suave.DataId tokenDataId
-    ) external {
+        Suave.DataId tokenDataId,
+        UnlockArgs calldata uArgs
+    ) external unlock(uArgs) {
         uint64 until = uint64(block.timestamp) + auctionArgs.auctionDuration;
         Auction storage newAuction = auctions.push();
         newAuction.status = AuctionStatus.LIVE;
@@ -74,8 +79,9 @@ contract AuctionOnchain is AuctionCommon {
     function submitBidCallback(
         uint16 auctionId,
         uint32 bidId,
-        address bidder
-    ) external {
+        address bidder,
+        UnlockArgs calldata uArgs
+    ) external unlock(uArgs) {
         auctions[auctionId].bids++;
         emit BidPlaced(auctionId, bidId, bidder);
     }
@@ -85,8 +91,9 @@ contract AuctionOnchain is AuctionCommon {
         uint32 winningBidId,
         address winningBidder,
         AuctionPayout memory payout,
-        bytes memory payoutSig
-    ) external {
+        bytes memory payoutSig,
+        UnlockArgs calldata uArgs
+    ) external unlock(uArgs) {
         Auction storage auction = auctions[auctionId];
         auction.status = AuctionStatus.SETTLED;
         auction.winner = winningBidder;
