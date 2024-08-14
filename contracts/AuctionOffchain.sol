@@ -107,8 +107,9 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         require(auction.status == AuctionStatus.SETTLED, "Auction is not settled");
         require(auction.winner == msg.sender, "Only winner can claim token");
         bytes memory tokenBytes = cstore.retrieveToken(auction.tokenDataId);
-        bytes memory key = Suave.confidentialInputs();
-        return Suave.aesEncrypt(key, tokenBytes);
+        bytes memory key = Context.confidentialInputs();
+        require(key.length == 32, "invalid key length");
+        return Suave.aesEncrypt(key, abi.encode(tokenBytes));
     }
 
     function checkBidValidity(uint16 auctionId, address bidder, uint bidAmount) public {
