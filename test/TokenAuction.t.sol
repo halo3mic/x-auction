@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "lib/suave-std/src/Test.sol";
+import "lib/suave-std/src/suavelib/Suave.sol";
 import "lib/suave-std/src/forge/ContextConnector.sol";
 import "lib/forge-std/src/console2.sol";
 import { VmSafe as VmOrg } from "lib/forge-std/src/Vm.sol";
@@ -108,7 +109,7 @@ contract AuctionTest is Test, SuaveEnabled {
                 ctx,
                 address(auction), 
                 abi.encodeWithSelector(auction.createAuction.selector, auctionArgs), 
-                abi.encode(secret)
+                abi.encodePacked(secret)
             );
         require(sCreate == ConfRequest.Status.SUCCESS, string(resCreate));
 
@@ -137,7 +138,7 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(uint(status), uint(AuctionStatus.LIVE));
         assertEq(payoutAddress, payoutAddressOrg);
         assertEq(auctioneer, address(this));
-        assertEq(hashedToken, keccak256(abi.encode(secret)));
+        assertEq(hashedToken, keccak256(abi.encodePacked(secret)));
     }
 
     function test_cancelAuction() public {
@@ -248,17 +249,14 @@ contract AuctionTest is Test, SuaveEnabled {
         assertEq(winner, bidderB);
 
         // Check the winner can claim the secret
+        bytes memory claimSecretKey = Suave.randomBytes(32);
         cheats.startPrank(bidderB);
-        (ConfRequest.Status status4, bytes memory resData4) = 
-            ConfRequest.sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.claimToken.selector, 0)
-            );
-        require(status4 == ConfRequest.Status.FAILURE_OFFCHAIN, "claim should fail offchain");
-        string memory claimedToken = LibString.slice(string(resData4), 4);
-        
-        assertEq(keccak256(abi.encode(secret)), keccak256(bytes(claimedToken)));
+        ctx.setConfidentialInputs(claimSecretKey);
+        bytes memory resData4 = auction.claimToken(0);
+
+        bytes memory claimedTokenDecrypted = Suave.aesDecrypt(claimSecretKey, resData4);
+        string memory decodedSecret = abi.decode(claimedTokenDecrypted, (string));
+        assertEq(keccak256(bytes(secret)), keccak256(bytes(decodedSecret)));
     }
 
     function test_checkBidValidity_auctionDeadline() public {

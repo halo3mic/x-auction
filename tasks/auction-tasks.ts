@@ -77,7 +77,18 @@ async function settleAuction(c: IConfig<ITaskArgsSimple>) {
 }
 
 async function claimToken(c: IConfig<ITaskArgsSimple>) {
-    const response = c.AuctionContract.claimToken.sendCCR(c.taskArgs.auctionId)
+    const key = ethers.id('pshhh')
+    const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(['bytes32'], [key])
+
+    const response = c.AuctionContract.claimToken.sendCCR(c.taskArgs.auctionId, { confidentialInputs })
+        .then(r => {
+            const defAbiCoder = ethers.AbiCoder.defaultAbiCoder()
+            const encryptedResult = defAbiCoder.decode(['bytes'], r.confidentialComputeResult).toString()
+            const decryptedResult = utils.aesDecryptStr(key, encryptedResult)
+            const decoded = defAbiCoder.decode(['string'], decryptedResult)
+            console.log(`\n🤐 Claimed secret: ${decoded}\n`)
+            return r
+        })
     await utils.prettyPromise(response, c.AuctionContract.interface, 'ClaimToken')
         .then(utils.handleResult)
 }

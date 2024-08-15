@@ -35,7 +35,7 @@ $ npx hardhat submit-bid <auction id> <bid value in eth> --network toliman
 $ npx hardhat settle-auction <auction id> --network toliman
 ```
 
-#### Claim token ❌
+#### Claim token
 ```
 $ npx hardhat claim-token <auction id> --network toliman
 ```

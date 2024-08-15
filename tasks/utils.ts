@@ -99,3 +99,44 @@ export async function handleResult<T>(result: Result<Promise<T>>): Promise<boole
 		return false
 	}
 }
+
+import { createDecipheriv } from 'crypto';
+
+export function aesDecryptStr(key: string, ciphertext: string): string {
+	const keyBuffer = Buffer.from(key.replace(/^0x/, ''), 'hex');
+	const ciphertextBuffer = Buffer.from(ciphertext.replace(/^0x/, ''), 'hex');
+	const plaintextBuffer = aesDecrypt(keyBuffer, ciphertextBuffer);
+	return plaintextBuffer.toString('utf8');
+}
+
+export function aesDecrypt(key: Buffer, ciphertext: Buffer): Buffer {
+	try {
+		const keyBytes = Buffer.alloc(32);
+		key.copy(keyBytes, 0, 0, Math.min(key.length, 32));
+
+		const nonceSize = 12; // GCM nonce size is typically 12 bytes
+		const tagSize = 16;   // GCM authentication tag is 16 bytes
+		const minSize = nonceSize + tagSize;
+
+		if (ciphertext.length < minSize) {
+			throw new Error(`Ciphertext too short. Expected at least ${minSize} bytes, but got ${ciphertext.length} bytes.`);
+		}
+
+		const nonce = ciphertext.subarray(0, nonceSize);
+		const tag = ciphertext.subarray(ciphertext.length - tagSize);
+		const encryptedData = ciphertext.subarray(nonceSize, ciphertext.length - tagSize);
+
+		const decipher = createDecipheriv('aes-256-gcm', keyBytes, nonce);
+		decipher.setAuthTag(tag);
+
+		const plaintextBuffer = Buffer.concat([
+			decipher.update(encryptedData),
+			decipher.final()
+		]);
+
+		return plaintextBuffer;
+    } catch (error) {
+		console.error('Decryption error:', error);
+		throw error;
+    }
+}

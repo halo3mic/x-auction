@@ -25,21 +25,21 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
+    "@types/bun": "latest",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "chai": "^4.2.0",
     "ethers": "6",
     "hardhat-gas-reporter": "^2.2.0",
+    "husky": "^9.1.4",
     "solidity-coverage": "^0.8.12",
-    "typechain": "^8.3.2",
-    "@types/bun": "latest",
-    "husky": "^9.1.4"
-  }, 
+    "typechain": "^8.3.2"
+  },
   "scripts": {
     "test": "./test/run-all-tests.sh",
     "prepare": "husky"
   },
   "peerDependencies": {
-     "typescript": "^5.0.0"
+    "typescript": "^5.0.0"
   }
 }
