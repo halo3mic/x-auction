@@ -11,6 +11,8 @@ const HOLESKY_RPC = getEnvValSafe('HOLESKY_RPC')
 const HOLESKY_PK = getEnvValSafe('HOLESKY_PK')
 const TOLIMAN_RPC = getEnvValSafe('TOLIMAN_RPC')
 const TOLIMAN_PK = getEnvValSafe('TOLIMAN_PK')
+const SUAVE_LOCAL_RPC = getEnvValSafe('SUAVE_LOCAL_RPC')
+const SUAVE_LOCAL_PK = getEnvValSafe('SUAVE_LOCAL_PK')
 
 const config = {
 	solidity: '0.8.13',
@@ -30,6 +32,14 @@ const config = {
 			chainId: 33626250, 
 			url: TOLIMAN_RPC,
 			accounts: [ TOLIMAN_PK ], 
+			companionNetworks: {
+				holesky: 'holesky',
+			},
+		},
+		suave: {
+			chainId: 424242, 
+			url: SUAVE_LOCAL_RPC,
+			accounts: [ SUAVE_LOCAL_PK ], 
 			companionNetworks: {
 				holesky: 'holesky',
 			},
