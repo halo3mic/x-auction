@@ -78,7 +78,7 @@ async function claimToken(c: IConfig<ITaskArgsSimple>) {
             const defAbiCoder = ethers.AbiCoder.defaultAbiCoder()
             const encryptedResult = defAbiCoder.decode(['bytes'], r.confidentialComputeResult).toString()
             const decryptedResult = utils.aesDecryptStr(key, encryptedResult)
-            const decoded = defAbiCoder.decode(['string'], decryptedResult)
+            const decoded = defAbiCoder.decode(['string'], Buffer.from(decryptedResult, 'utf-8'))
             console.log(`\n🤐 Claimed secret: ${decoded}\n`)
             return r
         })
