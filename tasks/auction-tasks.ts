@@ -13,7 +13,7 @@ task("create-auction", "Create an auction")
     "payoutCollectionDuration",
     "Amount of time funds are locked after auction settles. [s]",
     3600,
-    types.int
+    types.int,
   )
   .addOptionalParam("auctionContract", "Address of the auction contract")
   .setAction(async function (taskArgs: any, hre: HRE) {
@@ -54,15 +54,11 @@ task("init-ccontrol", "(Re)initialize the confidential control contract")
   });
 
 async function createAuction(c: IConfig<ITaskArgsCreate>) {
-  const { token, duration, payoutCollectionDuration, payoutAddress } =
-    c.taskArgs;
-  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(
-    ["string"],
-    [token]
-  );
+  const { token, duration, payoutCollectionDuration, payoutAddress } = c.taskArgs;
+  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(["string"], [token]);
   const response = c.AuctionContract.createAuction.sendCCR(
     [duration, payoutCollectionDuration, payoutAddress],
-    { confidentialInputs }
+    { confidentialInputs },
   );
   await utils
     .prettyPromise(response, c.AuctionContract.interface, "CreateAuction")
@@ -71,13 +67,8 @@ async function createAuction(c: IConfig<ITaskArgsCreate>) {
 
 async function submitBid(c: IConfig<ITaskArgsBid>) {
   const { auctionId, bidAmount } = c.taskArgs;
-  console.log(
-    `Submitting bid of ${ethers.formatEther(bidAmount)} to auction ${auctionId}`
-  );
-  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(
-    ["uint256"],
-    [bidAmount]
-  );
+  console.log(`Submitting bid of ${ethers.formatEther(bidAmount)} to auction ${auctionId}`);
+  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [bidAmount]);
   const response = c.AuctionContract.submitBid.sendCCR(auctionId, {
     confidentialInputs,
   });
@@ -87,9 +78,7 @@ async function submitBid(c: IConfig<ITaskArgsBid>) {
 }
 
 async function settleAuction(c: IConfig<ITaskArgsSimple>) {
-  const response = c.AuctionContract.settleAuction.sendCCR(
-    c.taskArgs.auctionId
-  );
+  const response = c.AuctionContract.settleAuction.sendCCR(c.taskArgs.auctionId);
   await utils
     .prettyPromise(response, c.AuctionContract.interface, "SettleAuction")
     .then(utils.handleResult);
@@ -97,23 +86,15 @@ async function settleAuction(c: IConfig<ITaskArgsSimple>) {
 
 async function claimToken(c: IConfig<ITaskArgsSimple>) {
   const key = ethers.id("pshhh");
-  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(
-    ["bytes32"],
-    [key]
-  );
+  const confidentialInputs = ethers.AbiCoder.defaultAbiCoder().encode(["bytes32"], [key]);
 
   const response = c.AuctionContract.claimToken
     .sendCCR(c.taskArgs.auctionId, { confidentialInputs })
     .then((r) => {
       const defAbiCoder = ethers.AbiCoder.defaultAbiCoder();
-      const encryptedResult = defAbiCoder
-        .decode(["bytes"], r.confidentialComputeResult)
-        .toString();
+      const encryptedResult = defAbiCoder.decode(["bytes"], r.confidentialComputeResult).toString();
       const decryptedResult = utils.aesDecryptStr(key, encryptedResult);
-      const decoded = defAbiCoder.decode(
-        ["string"],
-        Buffer.from(decryptedResult, "utf-8")
-      );
+      const decoded = defAbiCoder.decode(["string"], Buffer.from(decryptedResult, "utf-8"));
       console.log(`\n🤐 Claimed secret: ${decoded}\n`);
       return r;
     });
@@ -154,7 +135,7 @@ async function getConfig<T>(hre: HRE, taskArgsRaw: any): Promise<IConfig<T>> {
   const AuctionContract = await getSuaveAuctionContract(
     hre,
     suaveWallet,
-    taskArgsRaw.auctionContract
+    taskArgsRaw.auctionContract,
   );
   return {
     AuctionContract,
@@ -165,10 +146,7 @@ async function getConfig<T>(hre: HRE, taskArgsRaw: any): Promise<IConfig<T>> {
 function getEnvConfig(hre: HRE) {
   const networkConfig = hre.network.config;
   const suaveProvider = new SuaveJsonRpcProvider((networkConfig as any).url);
-  const suaveWallet = new SuaveWallet(
-    (networkConfig as any).accounts[0],
-    suaveProvider
-  );
+  const suaveWallet = new SuaveWallet((networkConfig as any).accounts[0], suaveProvider);
   return { suaveWallet };
 }
 
@@ -207,7 +185,7 @@ function parseTaskArgsBid(taskArgs: any): ITaskArgsBid {
 async function getSuaveAuctionContract(
   hre: HRE,
   swallet: SuaveWallet,
-  taAuction?: string
+  taAuction?: string,
 ): Promise<SuaveContract> {
   const ac = await utils.getContract(hre, "TokenAuction", taAuction);
   return new SuaveContract(ac.target as string, ac.interface, swallet);

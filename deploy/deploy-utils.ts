@@ -9,13 +9,9 @@ export interface DeployOptions {
 export function makeDeployCallback(
   deployOptions: DeployOptions,
   preDeployCallback?: any,
-  postDeployCallback?: any
+  postDeployCallback?: any,
 ): any {
-  const exportEnv = _makeDeployCallback(
-    deployOptions,
-    preDeployCallback,
-    postDeployCallback
-  );
+  const exportEnv = _makeDeployCallback(deployOptions, preDeployCallback, postDeployCallback);
   exportEnv.tags = deployOptions.tags;
   return exportEnv;
 }
@@ -23,11 +19,11 @@ export function makeDeployCallback(
 function _makeDeployCallback(
   deployOptions: DeployOptions,
   preDeployCallback?: any,
-  postDeployCallback?: any
+  postDeployCallback?: any,
 ): any {
   return async ({ getNamedAccounts, deployments }) => {
     if (preDeployCallback) {
-      let overrideArgs = await preDeployCallback(deployments);
+      const overrideArgs = await preDeployCallback(deployments);
       if (overrideArgs) deployOptions.args = overrideArgs;
     }
 
@@ -46,12 +42,10 @@ function _makeDeployCallback(
 
     if (deployResult.newlyDeployed) {
       log(
-        `- ${deployResult.contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
+        `- ${deployResult.contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`,
       );
     } else {
-      log(
-        `- Deployment skipped, using previous deployment at: ${deployResult.address}`
-      );
+      log(`- Deployment skipped, using previous deployment at: ${deployResult.address}`);
     }
     if (postDeployCallback) await postDeployCallback(deployments, deployResult);
   };

@@ -2,15 +2,15 @@ import { Interface } from "ethers";
 import { ConfidentialTransactionResponse } from "ethers-suave";
 import { HardhatRuntimeEnvironment as HRE } from "hardhat/types";
 
+import { createDecipheriv } from "crypto";
+
 export async function getContract(
   hre: HRE,
   contractName: string,
-  contractAddress?: string | undefined
+  contractAddress?: string | undefined,
 ) {
   if (!contractAddress) {
-    contractAddress = await hre.deployments
-      .get(contractName)
-      .then((c) => c.address);
+    contractAddress = await hre.deployments.get(contractName).then((c) => c.address);
   }
   return hre.ethers.getContractAt(contractName, contractAddress);
 }
@@ -20,7 +20,7 @@ export type Result<T> = [T, null] | [null, string];
 export async function prettyPromise(
   promise: Promise<ConfidentialTransactionResponse>,
   contract: Interface,
-  label_?: string
+  label_?: string,
 ): Promise<Result<Promise<string>>> {
   const label: string = label_ ? `'${label_}'` : "";
   return promise
@@ -37,7 +37,7 @@ export async function prettyPromise(
 async function handleNewSubmission(
   response: ConfidentialTransactionResponse,
   iface: Interface,
-  label: string
+  label: string,
 ): Promise<string> {
   const receipt = await response.wait();
   let output = `\t${label} Tx ${response.hash} confirmed:`;
@@ -67,11 +67,7 @@ async function handleNewSubmission(
   return output + "\n";
 }
 
-function handleSubmissionErr(
-  iface: Interface,
-  err: any,
-  label: string
-): string {
+function handleSubmissionErr(iface: Interface, err: any, label: string): string {
   if (err.body) {
     const rpcErr = JSON.parse(err.body)?.error?.message;
     if (rpcErr && rpcErr.startsWith("execution reverted: ")) {
@@ -83,9 +79,7 @@ function handleSubmissionErr(
             const errStr = Buffer.from(err.args[1].slice(2), "hex").toString();
             return `\t❗️ ${label} PeekerReverted(${err.args[0]}, '${errStr})'`;
           }
-          return `\t❗️ ${label} ${err.signature}(${err.args
-            .map((a) => `'${a}'`)
-            .join(",")})`;
+          return `\t❗️ ${label} ${err.signature}(${err.args.map((a) => `'${a}'`).join(",")})`;
         } catch {
           return `\t❗️ ${label} ${rpcErr}`;
         }
@@ -95,9 +89,7 @@ function handleSubmissionErr(
   return `\t❗️ ${label} ` + err;
 }
 
-export async function handleResult<T>(
-  result: Result<Promise<T>>
-): Promise<boolean> {
+export async function handleResult<T>(result: Result<Promise<T>>): Promise<boolean> {
   const [s, e] = result;
   if (s) {
     console.log("✅");
@@ -109,8 +101,6 @@ export async function handleResult<T>(
     return false;
   }
 }
-
-import { createDecipheriv } from "crypto";
 
 export function aesDecryptStr(key: string, ciphertext: string): string {
   const keyBuffer = Buffer.from(key.replace(/^0x/, ""), "hex");
@@ -130,24 +120,18 @@ export function aesDecrypt(key: Buffer, ciphertext: Buffer): Buffer {
 
     if (ciphertext.length < minSize) {
       throw new Error(
-        `Ciphertext too short. Expected at least ${minSize} bytes, but got ${ciphertext.length} bytes.`
+        `Ciphertext too short. Expected at least ${minSize} bytes, but got ${ciphertext.length} bytes.`,
       );
     }
 
     const nonce = ciphertext.subarray(0, nonceSize);
     const tag = ciphertext.subarray(ciphertext.length - tagSize);
-    const encryptedData = ciphertext.subarray(
-      nonceSize,
-      ciphertext.length - tagSize
-    );
+    const encryptedData = ciphertext.subarray(nonceSize, ciphertext.length - tagSize);
 
     const decipher = createDecipheriv("aes-256-gcm", keyBytes, nonce);
     decipher.setAuthTag(tag);
 
-    const plaintextBuffer = Buffer.concat([
-      decipher.update(encryptedData),
-      decipher.final(),
-    ]);
+    const plaintextBuffer = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
 
     return plaintextBuffer;
   } catch (error) {

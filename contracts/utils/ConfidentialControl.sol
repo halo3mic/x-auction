@@ -27,12 +27,9 @@ abstract contract ConfidentialControl is SuaveContract {
     string internal constant S_NAMESPACE = "blockad:v0:secret";
     Suave.DataId internal secretBidId;
     bytes32 internal presentHash;
-    uint internal nonce;
+    uint256 internal nonce;
 
-    function ccontrolInitCallback(
-        bytes32 nextHash,
-        Suave.DataId sBidId
-    ) external onlyOwner {
+    function ccontrolInitCallback(bytes32 nextHash, Suave.DataId sBidId) external onlyOwner {
         presentHash = nextHash;
         secretBidId = sBidId;
     }
@@ -45,12 +42,7 @@ abstract contract ConfidentialControl is SuaveContract {
         bytes memory secret = Suave.randomBytes(32);
         Suave.DataId sBidId = storeSecret(secret);
         bytes32 nextHash = makeHash(abi.decode(secret, (bytes32)), nonce);
-        return
-            abi.encodeWithSelector(
-                this.ccontrolInitCallback.selector,
-                nextHash,
-                sBidId
-            );
+        return abi.encodeWithSelector(this.ccontrolInitCallback.selector, nextHash, sBidId);
     }
 
     function getUnlockPair() internal returns (UnlockArgs memory) {
@@ -62,12 +54,7 @@ abstract contract ConfidentialControl is SuaveContract {
         peekers[0] = address(this);
         peekers[1] = Suave.FETCH_DATA_RECORDS;
         peekers[2] = Suave.CONFIDENTIAL_RETRIEVE;
-        Suave.DataRecord memory secretBid = Suave.newDataRecord(
-            0,
-            peekers,
-            peekers,
-            S_NAMESPACE
-        );
+        Suave.DataRecord memory secretBid = Suave.newDataRecord(0, peekers, peekers, S_NAMESPACE);
         Suave.confidentialStore(secretBid.id, S_NAMESPACE, secret);
         return secretBid.id;
     }
@@ -76,33 +63,24 @@ abstract contract ConfidentialControl is SuaveContract {
         return keccak256(abi.encode(key)) == presentHash;
     }
 
-    function getHash(uint _nonce) internal returns (bytes32) {
+    function getHash(uint256 _nonce) internal returns (bytes32) {
         return keccak256(abi.encode(getKey(_nonce)));
     }
 
-    function getKey(uint _nonce) internal returns (bytes32) {
+    function getKey(uint256 _nonce) internal returns (bytes32) {
         return makeKey(getSecret(), _nonce);
     }
 
-    function makeHash(
-        bytes32 secret,
-        uint _nonce
-    ) internal pure returns (bytes32) {
+    function makeHash(bytes32 secret, uint256 _nonce) internal pure returns (bytes32) {
         return keccak256(abi.encode(makeKey(secret, _nonce)));
     }
 
-    function makeKey(
-        bytes32 secret,
-        uint _nonce
-    ) internal pure returns (bytes32) {
+    function makeKey(bytes32 secret, uint256 _nonce) internal pure returns (bytes32) {
         return keccak256(abi.encode(secret, _nonce));
     }
 
     function getSecret() internal returns (bytes32) {
-        bytes memory secretB = Suave.confidentialRetrieve(
-            secretBidId,
-            S_NAMESPACE
-        );
+        bytes memory secretB = Suave.confidentialRetrieve(secretBidId, S_NAMESPACE);
         return abi.decode(secretB, (bytes32));
     }
 }

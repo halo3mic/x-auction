@@ -5,12 +5,7 @@ import { HardhatRuntimeEnvironment as HRE } from "hardhat/types";
 import * as utils from "./utils";
 
 task("lock-funds", "Lock funds in the vault")
-  .addPositionalParam(
-    "lockAmount",
-    "Amount to lock in ETH.",
-    null,
-    types.string
-  )
+  .addPositionalParam("lockAmount", "Amount to lock in ETH.", null, types.string)
   .addOptionalParam("vault", "Address of the vault contract")
   .setAction(async function (taskArgs: any, hre: HRE) {
     // todo; check network is holesky/mainnet
@@ -34,10 +29,7 @@ interface IConfig {
 
 async function getConfig(hre: HRE, taskArgs: any): Promise<IConfig> {
   const { wallet } = getEnvConfig(hre);
-  const { VaultContract: vc, ...taskConfig } = await getTaskConfig(
-    hre,
-    taskArgs
-  );
+  const { VaultContract: vc, ...taskConfig } = await getTaskConfig(hre, taskArgs);
   const VaultContract = new Contract(vc.target as string, vc.interface, wallet);
   return {
     VaultContract,
@@ -54,11 +46,7 @@ function getEnvConfig(hre: HRE) {
 
 async function getTaskConfig(hre: HRE, taskArgs: any) {
   const lockAmount = ethers.parseEther(taskArgs.lockAmount);
-  const VaultContract = await utils.getContract(
-    hre,
-    "SettlementVault",
-    taskArgs.auctionContract
-  );
+  const VaultContract = await utils.getContract(hre, "SettlementVault", taskArgs.auctionContract);
   return {
     VaultContract,
     lockAmount,

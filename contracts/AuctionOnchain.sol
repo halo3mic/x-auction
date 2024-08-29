@@ -12,18 +12,14 @@ contract AuctionOnchain is AuctionCommon {
         uint64 until,
         uint64 payoutCollectionDuration
     );
-    event AuctionCancelled(uint indexed auctionId);
+    event AuctionCancelled(uint256 indexed auctionId);
     event AuctionSettled(
         uint16 indexed auctionId,
         uint32 winningBidId,
         AuctionPayout payout,
         bytes payoutSig
     );
-    event BidPlaced(
-        uint16 indexed auctionId,
-        uint32 indexed bidId,
-        address indexed bidder
-    );
+    event BidPlaced(uint16 indexed auctionId, uint32 indexed bidId, address indexed bidder);
 
     constructor(address _vault, string memory _settlementChainRpc) {
         vault = _vault;
@@ -60,8 +56,7 @@ contract AuctionOnchain is AuctionCommon {
         newAuction.payoutAddress = auctionArgs.payoutAddress;
         newAuction.hashedToken = tokenHash;
         newAuction.until = until;
-        newAuction.payoutCollectionDuration = auctionArgs
-            .payoutCollectionDuration;
+        newAuction.payoutCollectionDuration = auctionArgs.payoutCollectionDuration;
         newAuction.auctioneer = auctioneer;
         newAuction.tokenDataId = tokenDataId;
 
@@ -101,14 +96,11 @@ contract AuctionOnchain is AuctionCommon {
 
     function cancelAuction(uint256 auctionId) external {
         Auction storage auction = auctions[auctionId];
-        require(
-            auction.auctioneer == msg.sender,
-            "Only auction master can cancel"
-        );
+        require(auction.auctioneer == msg.sender, "Only auction master can cancel");
         require(auction.status == AuctionStatus.LIVE, "Auction is not live");
         auctions[auctionId].status = AuctionStatus.CANCELLED;
         emit AuctionCancelled(auctionId);
     }
 
-    fallback() external {}
+    fallback() external payable {}
 }

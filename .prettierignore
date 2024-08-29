@@ -1,0 +1,27 @@
+# Hardhat build output
+artifacts/
+cache/
+coverage/
+
+# Foundry build output
+out/
+forge-cache/
+
+# Node modules
+node_modules/
+
+# Gas snapshots
+.gas-snapshot
+
+# Typechain generated files
+typechain/
+typechain-types/
+
+# submodules
+lib/
+
+# Miscellaneous
+.env
+.DS_Store
+
+frontend/

@@ -85,9 +85,7 @@ contract AuctionTest is Test, SuaveEnabled {
         vault = cheats.envAddress("FORGE_AUCTION_VAULT");
         bidderA = cheats.envAddress("FORGE_AUCTION_BIDDER_A");
         bidderB = cheats.envAddress("FORGE_AUCTION_BIDDER_B");
-        settlementChainRpc = cheats.envString(
-            "FORGE_AUCTION_SETTLEMENT_CHAIN_RPC"
-        );
+        settlementChainRpc = cheats.envString("FORGE_AUCTION_SETTLEMENT_CHAIN_RPC");
     }
 
     function newAuction(
@@ -102,24 +100,19 @@ contract AuctionTest is Test, SuaveEnabled {
             payoutAddress: payoutAddress
         });
 
-        (ConfRequest.Status sInit, bytes memory resInit) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.confidentialConstructor.selector)
-            );
+        (ConfRequest.Status sInit, bytes memory resInit) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.confidentialConstructor.selector)
+        );
         require(sInit == ConfRequest.Status.SUCCESS, string(resInit));
 
-        (ConfRequest.Status sCreate, bytes memory resCreate) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(
-                    auction.createAuction.selector,
-                    auctionArgs
-                ),
-                abi.encodePacked(secret)
-            );
+        (ConfRequest.Status sCreate, bytes memory resCreate) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.createAuction.selector, auctionArgs),
+            abi.encodePacked(secret)
+        );
         require(sCreate == ConfRequest.Status.SUCCESS, string(resCreate));
 
         return auction;
@@ -131,11 +124,7 @@ contract AuctionTest is Test, SuaveEnabled {
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
         (
             address payoutAddress,
             AuctionStatus status,
@@ -160,11 +149,7 @@ contract AuctionTest is Test, SuaveEnabled {
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
         auction.cancelAuction(0);
         (, AuctionStatus status, , , , , , , ) = auction.auctions(0);
 
@@ -178,44 +163,37 @@ contract AuctionTest is Test, SuaveEnabled {
         uint256 bidAmount = 100;
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         // First bid
         cheats.startPrank(bidderA);
-        (ConfRequest.Status status, bytes memory resData) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.submitBid.selector, 0),
-                abi.encode(bidAmount)
-            );
+        (ConfRequest.Status status, bytes memory resData) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.submitBid.selector, 0),
+            abi.encode(bidAmount)
+        );
         require(status == ConfRequest.Status.SUCCESS, string(resData));
         (, , , , uint128 bids, , , , ) = auction.auctions(0);
         assertEq(bids, 1);
 
         // Reinit confidential control
         cheats.stopPrank();
-        (ConfRequest.Status status2, bytes memory resData2) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.ccontrolInit.selector)
-            );
+        (ConfRequest.Status status2, bytes memory resData2) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.ccontrolInit.selector)
+        );
         require(status2 == ConfRequest.Status.SUCCESS, string(resData2));
 
         // Second bid
         cheats.startPrank(bidderB);
-        (ConfRequest.Status status3, bytes memory resData3) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.submitBid.selector, 0),
-                abi.encode(bidAmount)
-            );
+        (ConfRequest.Status status3, bytes memory resData3) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.submitBid.selector, 0),
+            abi.encode(bidAmount)
+        );
         require(status == ConfRequest.Status.SUCCESS, string(resData));
         (, , , , uint128 bids2, , , , ) = auction.auctions(0);
         assertEq(bids2, 2);
@@ -227,46 +205,39 @@ contract AuctionTest is Test, SuaveEnabled {
         string memory secret = "my secret";
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         // Bid 1
         uint256 bidAmount = 100;
         cheats.startPrank(bidderA);
-        (ConfRequest.Status status1, bytes memory resData1) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.submitBid.selector, 0),
-                abi.encode(bidAmount)
-            );
+        (ConfRequest.Status status1, bytes memory resData1) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.submitBid.selector, 0),
+            abi.encode(bidAmount)
+        );
         require(status1 == ConfRequest.Status.SUCCESS, string(resData1));
 
         // Bid 2
         bidAmount = 120;
         cheats.startPrank(bidderB);
-        (ConfRequest.Status status2, bytes memory resData2) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.submitBid.selector, 0),
-                abi.encode(bidAmount)
-            );
+        (ConfRequest.Status status2, bytes memory resData2) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.submitBid.selector, 0),
+            abi.encode(bidAmount)
+        );
         require(status2 == ConfRequest.Status.SUCCESS, string(resData2));
 
         // Settle auction
         cheats.recordLogs();
         cheats.stopPrank();
         cheats.warp(block.timestamp + auctionDuration + 1);
-        (ConfRequest.Status status3, bytes memory resData3) = ConfRequest
-            .sendConfRequest(
-                ctx,
-                address(auction),
-                abi.encodeWithSelector(auction.settleAuction.selector, 0)
-            );
+        (ConfRequest.Status status3, bytes memory resData3) = ConfRequest.sendConfRequest(
+            ctx,
+            address(auction),
+            abi.encodeWithSelector(auction.settleAuction.selector, 0)
+        );
         require(status3 == ConfRequest.Status.SUCCESS, string(resData3));
 
         // Check we got correct winner
@@ -279,14 +250,8 @@ contract AuctionTest is Test, SuaveEnabled {
         ctx.setConfidentialInputs(claimSecretKey);
         bytes memory resData4 = auction.claimToken(0);
 
-        bytes memory claimedTokenDecrypted = Suave.aesDecrypt(
-            claimSecretKey,
-            resData4
-        );
-        string memory decodedSecret = abi.decode(
-            claimedTokenDecrypted,
-            (string)
-        );
+        bytes memory claimedTokenDecrypted = Suave.aesDecrypt(claimSecretKey, resData4);
+        string memory decodedSecret = abi.decode(claimedTokenDecrypted, (string));
         assertEq(keccak256(bytes(secret)), keccak256(bytes(decodedSecret)));
     }
 
@@ -297,11 +262,7 @@ contract AuctionTest is Test, SuaveEnabled {
         uint256 bidAmount = 100;
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         cheats.expectRevert(bytes("Auction has ended"));
         cheats.warp(block.timestamp + auctionDuration + 1);
@@ -315,11 +276,7 @@ contract AuctionTest is Test, SuaveEnabled {
         uint256 bidAmount = 100_000 ether;
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         cheats.expectRevert(bytes("Insufficient funds"));
         auction.checkBidValidity(0, bidderA, bidAmount);
@@ -332,11 +289,7 @@ contract AuctionTest is Test, SuaveEnabled {
         uint256 bidAmount = 100;
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
         auction.checkBidValidity(0, bidderA, bidAmount);
     }
 
@@ -347,11 +300,7 @@ contract AuctionTest is Test, SuaveEnabled {
         uint256 bidAmount = 0;
         uint64 auctionDuration = 3600;
 
-        TokenAuction auction = newAuction(
-            secret,
-            payoutAddressOrg,
-            auctionDuration
-        );
+        TokenAuction auction = newAuction(secret, payoutAddressOrg, auctionDuration);
 
         cheats.expectRevert(bytes("Bid amount should be greater than zero"));
         auction.checkBidValidity(0, bidderA, bidAmount);
@@ -361,8 +310,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](1);
         bids[0] = Bid({id: 11, bidder: bidderA, amount: 100});
 
-        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils
-            .settleVickeryAuction(bids);
+        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
         assertEq(winningBid.id, bids[0].id);
         assertEq(scndBestBidAmount, bids[0].amount);
     }
@@ -371,8 +319,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({id: 11, bidder: bidderA, amount: 100});
         bids[1] = Bid({id: 12, bidder: bidderA, amount: 100});
-        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils
-            .settleVickeryAuction(bids);
+        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
 
         assertEq(winningBid.id, bids[0].id);
         assertEq(scndBestBidAmount, bids[0].amount);
@@ -383,8 +330,7 @@ contract AuctionTest is Test, SuaveEnabled {
         bids[0] = Bid({id: 0, bidder: bidderA, amount: 100});
         bids[1] = Bid({id: 1, bidder: address(2), amount: 100});
         bids[2] = Bid({id: 2, bidder: address(3), amount: 90});
-        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils
-            .settleVickeryAuction(bids);
+        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
 
         assertEq(winningBid.id, bids[0].id);
         assertEq(scndBestBidAmount, bids[0].amount);
@@ -394,8 +340,7 @@ contract AuctionTest is Test, SuaveEnabled {
         Bid[] memory bids = new Bid[](2);
         bids[0] = Bid({id: 0, bidder: bidderA, amount: 90});
         bids[1] = Bid({id: 1, bidder: address(2), amount: 100});
-        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils
-            .settleVickeryAuction(bids);
+        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
 
         assertEq(winningBid.id, bids[1].id);
         assertEq(scndBestBidAmount, bids[0].amount);
@@ -406,8 +351,7 @@ contract AuctionTest is Test, SuaveEnabled {
         bids[0] = Bid({id: 0, bidder: bidderA, amount: 90});
         bids[1] = Bid({id: 1, bidder: address(2), amount: 100});
         bids[2] = Bid({id: 2, bidder: address(3), amount: 110});
-        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils
-            .settleVickeryAuction(bids);
+        (Bid memory winningBid, uint scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
 
         assertEq(winningBid.id, bids[2].id);
         assertEq(scndBestBidAmount, bids[1].amount);

@@ -14,11 +14,7 @@ interface ICheats {
 }
 
 interface IVault {
-    function takeFunds(
-        address account,
-        uint192 amount,
-        bytes calldata sig
-    ) external;
+    function takeFunds(address account, uint192 amount, bytes calldata sig) external;
 
     function registerAuctionMaster(address _auctionMaster) external;
 

@@ -34,28 +34,23 @@ struct AuctionPayout {
     address taker;
     uint16 paymentNonce;
     address account;
-    uint amount;
+    uint256 amount;
 }
 
 library BidUtils {
-    function getBidId(
-        uint16 auctionId,
-        uint16 bidIndex
-    ) internal pure returns (uint32) {
+    function getBidId(uint16 auctionId, uint16 bidIndex) internal pure returns (uint32) {
         return uint32((auctionId << 16) | bidIndex);
     }
 
-    function unpackBidId(
-        uint32 bidId
-    ) internal pure returns (uint16 auctionId, uint16 bidIndex) {
+    function unpackBidId(uint32 bidId) internal pure returns (uint16 auctionId, uint16 bidIndex) {
         auctionId = uint16(bidId >> 16);
         bidIndex = uint16(bidId);
     }
 
     function settleVickeryAuction(
         Bid[] memory bids
-    ) internal pure returns (Bid memory winningBid, uint scndBestBidAmount) {
-        for (uint i = 0; i < bids.length; ++i) {
+    ) internal pure returns (Bid memory winningBid, uint256 scndBestBidAmount) {
+        for (uint256 i = 0; i < bids.length; ++i) {
             Bid memory bid = bids[i];
             if (bid.amount > winningBid.amount) {
                 scndBestBidAmount = winningBid.amount;
