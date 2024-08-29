@@ -1,8 +1,7 @@
 // import "contracts/utils/AuctionUtils.sol";
-import { Suave } from "lib/suave-std/src/suavelib/Suave.sol";
+import {Suave} from "lib/suave-std/src/suavelib/Suave.sol";
 import "lib/suave-std/src/Gateway.sol";
 import "./AuctionCommon.sol";
-
 
 contract AuctionOnchain is AuctionCommon {
     event AuctionCreated(
@@ -13,18 +12,14 @@ contract AuctionOnchain is AuctionCommon {
         uint64 until,
         uint64 payoutCollectionDuration
     );
-    event AuctionCancelled(uint indexed auctionId);
+    event AuctionCancelled(uint256 indexed auctionId);
     event AuctionSettled(
         uint16 indexed auctionId,
         uint32 winningBidId,
         AuctionPayout payout,
         bytes payoutSig
     );
-    event BidPlaced(
-        uint16 indexed auctionId,
-        uint32 indexed bidId,
-        address indexed bidder
-    );
+    event BidPlaced(uint16 indexed auctionId, uint32 indexed bidId, address indexed bidder);
 
     constructor(address _vault, string memory _settlementChainRpc) {
         vault = _vault;
@@ -35,7 +30,7 @@ contract AuctionOnchain is AuctionCommon {
     function confidentialConstructorCallback(
         Suave.DataId _pkDataId,
         Suave.DataId _bidCountDataId,
-        address pkAddress, 
+        address pkAddress,
         bytes memory ccontrolInitCallback
     ) public onlyOwner {
         require(!isInitialized, "Already initialized");
@@ -43,15 +38,15 @@ contract AuctionOnchain is AuctionCommon {
         pkDataId = _pkDataId;
         auctionMaster = pkAddress;
         isInitialized = true;
-        
-        (bool s,) = address(this).delegatecall(ccontrolInitCallback);
+
+        (bool s, ) = address(this).delegatecall(ccontrolInitCallback);
         require(s, "Initialization of ConfidentialControl failed");
     }
 
     function createAuctionCallback(
         NewAuctionArgs memory auctionArgs,
         bytes32 tokenHash,
-        address auctioneer, 
+        address auctioneer,
         Suave.DataId tokenDataId,
         UnlockArgs calldata uArgs
     ) external unlock(uArgs) {
@@ -61,8 +56,7 @@ contract AuctionOnchain is AuctionCommon {
         newAuction.payoutAddress = auctionArgs.payoutAddress;
         newAuction.hashedToken = tokenHash;
         newAuction.until = until;
-        newAuction.payoutCollectionDuration = auctionArgs
-            .payoutCollectionDuration;
+        newAuction.payoutCollectionDuration = auctionArgs.payoutCollectionDuration;
         newAuction.auctioneer = auctioneer;
         newAuction.tokenDataId = tokenDataId;
 
@@ -108,6 +102,5 @@ contract AuctionOnchain is AuctionCommon {
         emit AuctionCancelled(auctionId);
     }
 
-    fallback() external {}
-
+    fallback() external payable {}
 }
