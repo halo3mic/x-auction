@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-
 import "lib/suave-std/src/suavelib/Suave.sol";
 import "lib/suave-std/src/Context.sol";
 
@@ -11,9 +10,7 @@ import "contracts/utils/SigUtils.sol";
 import "./AuctionCommon.sol";
 import "./AuctionOnchain.sol";
 
-
 contract AuctionOffchain is SuaveContract, AuctionCommon {
-
     AuctionConfidentialStore immutable cstore = new AuctionConfidentialStore();
 
     function confidentialConstructor() external returns (bytes memory) {
@@ -58,10 +55,7 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         address bidder = msg.sender;
 
         checkBidValidity(auctionId, bidder, bidAmount);
-        uint32 bidId = BidUtils.getBidId(
-            auctionId,
-            incrementBidCount() 
-        );
+        uint32 bidId = BidUtils.getBidId(auctionId, incrementBidCount());
         Bid memory bid = Bid(bidId, bidder, bidAmount);
         cstore.storeBid(bid, auctionId);
 
@@ -83,7 +77,9 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         require(block.timestamp > auction.until, "Auction has not ended");
         require(auction.bids > 0, "No bids");
 
-        (Bid memory winningBid, uint scndBidAmount) = settleVickeryAuction(auctionId);
+        (Bid memory winningBid, uint scndBidAmount) = settleVickeryAuction(
+            auctionId
+        );
         AuctionPayout memory payout = AuctionPayout(
             vault,
             auction.payoutAddress,
@@ -109,7 +105,10 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         uint16 auctionId
     ) external onlyConfidential onlyInitialized returns (bytes memory) {
         Auction storage auction = auctions[auctionId];
-        require(auction.status == AuctionStatus.SETTLED, "Auction is not settled");
+        require(
+            auction.status == AuctionStatus.SETTLED,
+            "Auction is not settled"
+        );
         require(auction.winner == msg.sender, "Only winner can claim token");
         bytes memory tokenBytes = cstore.retrieveToken(auction.tokenDataId);
         bytes memory key = Context.confidentialInputs();
@@ -117,7 +116,11 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         return Suave.aesEncrypt(key, abi.encode(tokenBytes));
     }
 
-    function checkBidValidity(uint16 auctionId, address bidder, uint bidAmount) public {
+    function checkBidValidity(
+        uint16 auctionId,
+        address bidder,
+        uint bidAmount
+    ) public {
         Auction storage auction = auctions[auctionId];
         require(auction.status == AuctionStatus.LIVE, "Auction is not live");
         require(block.timestamp <= auction.until, "Auction has ended");
@@ -154,7 +157,7 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
 
     function incrementBidCount() internal returns (uint16 bidCount) {
         bidCount = cstore.retrieveBidCount(bidCountDataId);
-        cstore.updateBidCount(bidCountDataId, bidCount+1);
+        cstore.updateBidCount(bidCountDataId, bidCount + 1);
     }
 
     function settleVickeryAuction(
@@ -163,7 +166,6 @@ contract AuctionOffchain is SuaveContract, AuctionCommon {
         Bid[] memory bids = cstore.fetchBids(auctionId);
         (winningBid, scndBestBidAmount) = BidUtils.settleVickeryAuction(bids);
     }
-
 }
 
 contract AuctionConfidentialStore {
@@ -176,9 +178,10 @@ contract AuctionConfidentialStore {
         0xC8df3686b4Afb2BB53e60EAe97EF043FE03Fb829
     ]; // todo: update after suave update (this exposes storage to everyone)
 
-
     function storeBid(Bid memory bid, uint16 auctionId) external {
-        string memory namespace = string(abi.encodePacked(BID_NAMESPACE, auctionId));
+        string memory namespace = string(
+            abi.encodePacked(BID_NAMESPACE, auctionId)
+        );
         address[] memory peekers = new address[](3);
         peekers[0] = address(this);
         peekers[1] = Suave.FETCH_DATA_RECORDS;
@@ -193,7 +196,9 @@ contract AuctionConfidentialStore {
     }
 
     function fetchBids(uint16 auctionId) external returns (Bid[] memory) {
-        string memory namespace = string(abi.encodePacked(BID_NAMESPACE, auctionId));
+        string memory namespace = string(
+            abi.encodePacked(BID_NAMESPACE, auctionId)
+        );
         Suave.DataRecord[] memory dataRecords = Suave.fetchDataRecords(
             0,
             namespace
@@ -215,22 +220,35 @@ contract AuctionConfidentialStore {
         peekers[0] = address(this);
         peekers[1] = Suave.FETCH_DATA_RECORDS;
         peekers[2] = Suave.CONFIDENTIAL_RETRIEVE;
-        
+
         Suave.DataRecord memory dataRec = Suave.newDataRecord(
             0,
             peekers,
             peekers,
             BIDCOUNT_NAMESPACE
         );
-        Suave.confidentialStore(dataRec.id, BIDCOUNT_NAMESPACE, abi.encode(bidCount));
+        Suave.confidentialStore(
+            dataRec.id,
+            BIDCOUNT_NAMESPACE,
+            abi.encode(bidCount)
+        );
         return dataRec.id;
     }
 
-    function updateBidCount(Suave.DataId bidCountDataId, uint16 bidCount) external {
-        Suave.confidentialStore(bidCountDataId, BIDCOUNT_NAMESPACE, abi.encode(bidCount));
+    function updateBidCount(
+        Suave.DataId bidCountDataId,
+        uint16 bidCount
+    ) external {
+        Suave.confidentialStore(
+            bidCountDataId,
+            BIDCOUNT_NAMESPACE,
+            abi.encode(bidCount)
+        );
     }
 
-    function retrieveBidCount(Suave.DataId bidCountDataId) public returns (uint16) {
+    function retrieveBidCount(
+        Suave.DataId bidCountDataId
+    ) public returns (uint16) {
         bytes memory bidCountBytes = Suave.confidentialRetrieve(
             bidCountDataId,
             BIDCOUNT_NAMESPACE
@@ -238,7 +256,9 @@ contract AuctionConfidentialStore {
         return abi.decode(bidCountBytes, (uint16));
     }
 
-    function storeToken(bytes memory tokenBytes) external returns (Suave.DataId) {
+    function storeToken(
+        bytes memory tokenBytes
+    ) external returns (Suave.DataId) {
         address[] memory peekers = new address[](3);
         peekers[0] = address(this);
         peekers[1] = Suave.FETCH_DATA_RECORDS;
@@ -253,7 +273,9 @@ contract AuctionConfidentialStore {
         return secretBid.id;
     }
 
-    function retrieveToken(Suave.DataId tokenDataId) external returns (bytes memory tokenBytes) {
+    function retrieveToken(
+        Suave.DataId tokenDataId
+    ) external returns (bytes memory tokenBytes) {
         tokenBytes = Suave.confidentialRetrieve(tokenDataId, TOKEN_NAMESPACE);
     }
 
@@ -272,12 +294,13 @@ contract AuctionConfidentialStore {
         return secretBid.id;
     }
 
-    function retreivePK(Suave.DataId pkDataId) external returns (string memory) {
+    function retreivePK(
+        Suave.DataId pkDataId
+    ) external returns (string memory) {
         bytes memory pkBytes = Suave.confidentialRetrieve(
             pkDataId,
             PK_NAMESPACE
         );
         return string(pkBytes);
     }
-
 }

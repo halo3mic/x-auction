@@ -1,8 +1,7 @@
 // import "contracts/utils/AuctionUtils.sol";
-import { Suave } from "lib/suave-std/src/suavelib/Suave.sol";
+import {Suave} from "lib/suave-std/src/suavelib/Suave.sol";
 import "lib/suave-std/src/Gateway.sol";
 import "./AuctionCommon.sol";
-
 
 contract AuctionOnchain is AuctionCommon {
     event AuctionCreated(
@@ -35,7 +34,7 @@ contract AuctionOnchain is AuctionCommon {
     function confidentialConstructorCallback(
         Suave.DataId _pkDataId,
         Suave.DataId _bidCountDataId,
-        address pkAddress, 
+        address pkAddress,
         bytes memory ccontrolInitCallback
     ) public onlyOwner {
         require(!isInitialized, "Already initialized");
@@ -43,15 +42,15 @@ contract AuctionOnchain is AuctionCommon {
         pkDataId = _pkDataId;
         auctionMaster = pkAddress;
         isInitialized = true;
-        
-        (bool s,) = address(this).delegatecall(ccontrolInitCallback);
+
+        (bool s, ) = address(this).delegatecall(ccontrolInitCallback);
         require(s, "Initialization of ConfidentialControl failed");
     }
 
     function createAuctionCallback(
         NewAuctionArgs memory auctionArgs,
         bytes32 tokenHash,
-        address auctioneer, 
+        address auctioneer,
         Suave.DataId tokenDataId,
         UnlockArgs calldata uArgs
     ) external unlock(uArgs) {
@@ -102,12 +101,14 @@ contract AuctionOnchain is AuctionCommon {
 
     function cancelAuction(uint256 auctionId) external {
         Auction storage auction = auctions[auctionId];
-        require(auction.auctioneer == msg.sender, "Only auction master can cancel");
+        require(
+            auction.auctioneer == msg.sender,
+            "Only auction master can cancel"
+        );
         require(auction.status == AuctionStatus.LIVE, "Auction is not live");
         auctions[auctionId].status = AuctionStatus.CANCELLED;
         emit AuctionCancelled(auctionId);
     }
 
     fallback() external {}
-
 }

@@ -1,6 +1,6 @@
 pragma solidity ^0.8.8;
 
-import { Suave } from "lib/suave-std/src/suavelib/Suave.sol";
+import {Suave} from "lib/suave-std/src/suavelib/Suave.sol";
 
 enum AuctionStatus {
     LIVE,
@@ -38,12 +38,16 @@ struct AuctionPayout {
 }
 
 library BidUtils {
-
-    function getBidId(uint16 auctionId, uint16 bidIndex) internal pure returns (uint32) {
-        return uint32(auctionId << 16 | bidIndex);
+    function getBidId(
+        uint16 auctionId,
+        uint16 bidIndex
+    ) internal pure returns (uint32) {
+        return uint32((auctionId << 16) | bidIndex);
     }
 
-    function unpackBidId(uint32 bidId) internal pure returns (uint16 auctionId, uint16 bidIndex) {
+    function unpackBidId(
+        uint32 bidId
+    ) internal pure returns (uint16 auctionId, uint16 bidIndex) {
         auctionId = uint16(bidId >> 16);
         bidIndex = uint16(bidId);
     }
@@ -64,5 +68,4 @@ library BidUtils {
             scndBestBidAmount = winningBid.amount;
         }
     }
-
 }

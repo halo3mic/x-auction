@@ -17,5 +17,4 @@ abstract contract AuctionCommon is ConfidentialControl {
         require(isInitialized, "Not initialized");
         _;
     }
-
 }
